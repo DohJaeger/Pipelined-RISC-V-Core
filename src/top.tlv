@@ -1,7 +1,16 @@
-
 \m5_TLV_version 1d: tl-x.org
 \m5
    use(m5-1.0)
+   
+   // #################################################################
+   // #                                                               #
+   // #  Starting-Point Code for MEST Course Tiny Tapeout RISC-V CPU  #
+   // #                                                               #
+   // #################################################################
+   
+   // ========
+   // Settings
+   // ========
    
    //-------------------------------------------------------
    // Build Target Configuration
@@ -228,9 +237,10 @@
          /* verilator lint_on WIDTH */
          
          // RF write
-         $rf_wr_en = >>2$valid_load ? 1'b1 : $valid && $rd_valid && $rd != 5'b0;
+         $rf_wr_en = >>2$valid_load ? 1'b1 : $valid && $rd_valid && ($rd != 5'b0) && !$valid_load;   //last valid_load logic to avoid writing when load data is not read yet
+         //$rf_wr_en = $valid && $rd_valid && ($rd != 5'b0);
          $rf_wr_index[4:0] = >>2$valid_load ? >>2$rd : $rd;
-         $rf_wr_data[31:0] = >>2$valid_load ? >>1$ld_data : $result;
+         $rf_wr_data[31:0] = >>2$valid_load ? >>2$ld_data : $result;
          
          // branch taken logic
          $x1[31:0] = $src1_value;
@@ -243,7 +253,7 @@
                      $is_bgeu? ($x1 >= $x2) :
                      1'b0;
          
-         $valid_taken_br = $valid && $taken_br;   //valid_taken_br
+         $valid_taken_br = $valid && $taken_br;
          $valid_load = $valid && $is_load;
          
       @4
